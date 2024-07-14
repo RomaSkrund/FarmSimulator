@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Zenject;
 
 class VegitableGrow : MonoBehaviour
 {
@@ -15,35 +16,34 @@ class VegitableGrow : MonoBehaviour
 
     private IVegitable? _vegitable;
 
-    private bool _vegitableIsGrown = false;
-    public bool vegitableIsGrown => _vegitableIsGrown;
+    private ContactFarmerWithGrownVegitables _contactFarmerWithGrownVegitables;
 
-    private void Start()
+    [Inject]
+    private void Construct(ContactFarmerWithGrownVegitables contactFarmerWithGrownVegitables)
     {
-        StartGrow();
+        _contactFarmerWithGrownVegitables = contactFarmerWithGrownVegitables;
     }
 
     private void OnEnable()
     {
-        ChooseVegitable.onVegitableChoosen += StartGrow;
         ChooseVegitable.onVegitableChoosenInterface += SetTypeVegitable;
     }
 
     private void OnDisable()
     {
-        ChooseVegitable.onVegitableChoosen -= StartGrow;   
         ChooseVegitable.onVegitableChoosenInterface -= SetTypeVegitable;
     }
+    public void SetTypeVegitable(IVegitable vegitable)
+    {
+        _vegitable = vegitable;
+        StartGrow();
+    }
 
-    private void StartGrow()
+    public void StartGrow()
     {
         StartCoroutine(Growing());
     }
 
-    public void SetTypeVegitable(IVegitable vegitable)
-    {
-        _vegitable = vegitable;
-    }
 
     private IEnumerator Growing()
     {
@@ -54,7 +54,6 @@ class VegitableGrow : MonoBehaviour
         yield return new WaitForSeconds(_vegitable.GrowSpeed / 2);
         Destroy(prefab);
         Instantiate(_vegitable.VegitablePrefab, _parentPrefab);
-        _vegitableIsGrown = true;
         yield break;
     }
 }

@@ -4,28 +4,55 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using Zenject;
 
 public class ChooseVegitable : MonoBehaviour
 {
     [SerializeField] private Tomato _tomato;
     [SerializeField] private Cabbage _cabbage;
 
-    public static event Action onVegitableChoosen;
-    public static event Action<IVegitable> onVegitableChoosenInterface;
+    private int _vegitableCost = 0;
+    public int VegitableCost => _vegitableCost;
+
+    public static Action<IVegitable> onVegitableChoosenInterface;
+
+    private SpawnGardenBeds _spawnGardenBeds;
+
+    [Inject]
+    private void Construct(SpawnGardenBeds spawnGardenBeds)
+    {
+        _spawnGardenBeds = spawnGardenBeds;
+    }
+
+    private void Start()
+    {
+        ChooseStartType();
+    }
 
     private void OnEnable()
     {
-        SpawnGardenBeds.onGardenSpawned += Initialize;
+        _spawnGardenBeds.onGardenSpawned += ChooseStartType;
     }
 
     private void OnDisable()
     {
-        SpawnGardenBeds.onGardenSpawned -= Initialize;
+        _spawnGardenBeds.onGardenSpawned -= ChooseStartType;
     }
 
-    public void Initialize()
+    public void ChooseStartType()
     {
-        onVegitableChoosenInterface?.Invoke(_tomato);
-        onVegitableChoosen?.Invoke();
+        ChooseType(_tomato);
+    }
+
+    public void CabbageButton()
+    {
+        ChooseType(_cabbage);
+    }
+
+    public void ChooseType(IVegitable vegitable)
+    {
+        onVegitableChoosenInterface?.Invoke(vegitable);
+        _vegitableCost = vegitable.VegitableCost;
+
     }
 }
